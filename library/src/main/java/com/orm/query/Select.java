@@ -14,10 +14,10 @@ public class Select<T> implements Iterable {
     private Class<T> record;
     private String[] arguments;
     private String whereClause = "";
-    private String orderBy;
-    private String groupBy;
-    private String limit;
-    private String offset;
+    private String orderBy = "";
+    private String groupBy = "";
+    private String limit = "";
+    private String offset = "";
     private List<Object> args = new ArrayList<Object>();
 
     public Select(Class<T> record) {
@@ -40,6 +40,11 @@ public class Select<T> implements Iterable {
 
     public Select<T> limit(String limit) {
         this.limit = limit;
+        return this;
+    }
+
+    public Select<T> offset(String offset) {
+        this.offset = offset;
         return this;
     }
 
@@ -136,10 +141,32 @@ public class Select<T> implements Iterable {
         List<T> list = SugarRecord.find(record, whereClause, arguments, groupBy, orderBy, "1");
         return list.size() > 0 ? list.get(0) : null;
     }
-    
+
     String toSql() {
-        return SQLiteQueryBuilder.buildQueryString(
-                true, NamingHelper.toSQLName(this.record), arguments, whereClause, groupBy, null, orderBy, limit);
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT * FROM ").append(NamingHelper.toSQLName(this.record)).append(" ");
+
+        if (!whereClause.isEmpty()) {
+            sql.append("WHERE ").append(whereClause).append(" ");
+        }
+
+        if (!orderBy.isEmpty()) {
+            sql.append("ORDER BY ").append(orderBy).append(" ");
+        }
+
+        if (!groupBy.isEmpty()) {
+            sql.append("GROUP BY ").append(groupBy).append(" ");
+        }
+
+        if (!limit.isEmpty()) {
+            sql.append("LIMIT ").append(limit).append(" ");
+        }
+
+        if (!offset.isEmpty()) {
+            sql.append("OFFSET ").append(offset).append(" ");
+        }
+
+        return sql.toString();
     }
 
     String getWhereCond() {
